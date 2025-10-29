@@ -1,0 +1,22 @@
+# Encrypted secret files
+key.gpg
+qrcode.gpg
+
+# Plaintext secret files (should never exist, but just in case)
+qrcode
+key
+
+# Temporary files created by tokgen.sh
+tempk
+tempq
+tmp
+
+# QR code images
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# macOS
+.DS_Store
+

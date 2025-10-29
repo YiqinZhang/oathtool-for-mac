@@ -1,10 +1,34 @@
-# Todo: Replace <some phrase 1> and <some phrase 2> with your passphrases.
+#!/bin/bash
+# TOTP Token Generator
+# Configuration: Replace YOUR_KEY_PASSPHRASE and YOUR_QRCODE_PASSPHRASE with your actual passphrases
 
-gpg --batch --output ~/.oathtool/tempk --passphrase <some phrase 1> --decrypt ~/.oathtool/key.gpg
-gpg --batch --output ~/.oathtool/tempq  --passphrase <some phrase 2> --decrypt ~/.oathtool/qrcode.gpg
+# Set locale to avoid encoding issues with tr command on macOS
+export LC_ALL=C
+
+# Exit on any error
+set -e
+
+# Check dependencies
+if ! command -v gpg &> /dev/null; then
+    echo "Error: gpg not found. Please install GnuPG."
+    exit 1
+fi
+
+if ! command -v oathtool &> /dev/null; then
+    echo "Error: oathtool not found. Please install oath-toolkit."
+    exit 1
+fi
+
+# Decrypt files (IMPORTANT: Replace the passphrases below with your actual passphrases)
+gpg --batch --output ~/.oathtool/tempk --passphrase YOUR_KEY_PASSPHRASE --decrypt ~/.oathtool/key.gpg
+gpg --batch --output ~/.oathtool/tempq --passphrase YOUR_QRCODE_PASSPHRASE --decrypt ~/.oathtool/qrcode.gpg
 
 # Following should be adjusted for the token format expected in your auth. Here, the format is key+totp.
-echo "$(cat ~/.oathtool/tempk)$(oathtool --base32 --totp $(<~/.oathtool/tempq))"  > ~/.oathtool/tmp      
+# Remove spaces from key, use qrcode content to generate TOTP
+ORIGINAL_KEY=$(cat ~/.oathtool/tempk | tr -d ' ')
+QRCODE_KEY=$(cat ~/.oathtool/tempq | tr -d ' \n\r')
+TOTP=$(echo "$QRCODE_KEY" | oathtool --base32 --totp -)
+echo "$ORIGINAL_KEY$TOTP" > ~/.oathtool/tmp
 
 # For mac uncomment this, comment the linux block
 pbcopy < ~/.oathtool/tmp
